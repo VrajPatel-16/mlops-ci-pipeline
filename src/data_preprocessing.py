@@ -83,7 +83,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
             logger.debug("Filled missing values in '%s' with median %s", col, median_val)
 
     # Categorical columns: fill missing values with mode
-    categorical_cols = df.select_dtypes(include=["object", "str"]).columns
+    categorical_cols = df.select_dtypes(include=["object"]).columns
     for col in categorical_cols:
         if df[col].isnull().sum() > 0:
             mode_val = df[col].mode()[0]
@@ -98,7 +98,9 @@ def binary_encode(df: pd.DataFrame, binary_cols: list) -> pd.DataFrame:
     mapping = {"yes": 1, "no": 0}
     for col in binary_cols:
         if col in df.columns:
-            df[col] = df[col].map(mapping).astype(int)
+            df[col] = df[col].map(mapping)
+            if not df[col].isnull().any():
+                df[col] = df[col].astype(int)
             logger.debug("Binary encoded column '%s'", col)
         else:
             logger.warning("Binary column '%s' not found in dataframe", col)
