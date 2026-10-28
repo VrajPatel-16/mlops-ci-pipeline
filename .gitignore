@@ -1,0 +1,6 @@
+data/
+models/
+metrics/
+logs/
+__pycache__/
+*.pyc

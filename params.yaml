@@ -6,26 +6,24 @@
 data_ingestion:
   raw_data_path: dataset/Housing.csv
   raw_dir: data/raw
-  test_size: 0.2
+  test_size: 0.3
   random_state: 42
 
 data_preprocessing:
   processed_dir: data/processed
   # columns with yes/no values that get binary-encoded (1/0)
   binary_cols:
-    - mainroad
-    - guestroom
-    - basement
-    - hotwaterheating
-    - airconditioning
-    - prefarea
-
+  - mainroad
+  - guestroom
+  - basement
+  - hotwaterheating
+  - airconditioning
+  - prefarea
 feature_engineering:
   features_dir: data/features
   # column that gets one-hot encoded
   onehot_cols:
-    - furnishingstatus
-  # engineered ratio feature: area / bedrooms
+  - furnishingstatus
   create_area_per_bedroom: true
   # engineered feature: bathrooms + bedrooms
   create_total_rooms: true
