@@ -6,7 +6,9 @@ Unit tests for:
     - src/data_preprocessing.py
 
 Run with:
-    pytest tests/test_pipeline.py -v
+    pytest test_pipeline.py -v
+or:
+    python test_pipeline.py
 """
 
 import os
@@ -21,15 +23,27 @@ import yaml
 
 # ------------------------------------------------------------------ #
 # Make sure `src` is importable regardless of where pytest is invoked
-# from. The pipeline code lives in /src (relative to the repo root).
+# from. Supports running from repository root or subfolders.
 # ------------------------------------------------------------------ #
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if os.path.exists(os.path.join(CURRENT_DIR, "src")):
+    REPO_ROOT = CURRENT_DIR
+else:
+    REPO_ROOT = os.path.dirname(CURRENT_DIR)
+
 SRC_PATH = os.path.join(REPO_ROOT, "src")
+
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 if SRC_PATH not in sys.path:
     sys.path.insert(0, SRC_PATH)
 
-from src import data_ingestion  # noqa: E402
-from src import data_preprocessing  # noqa: E402
+try:
+    from src import data_ingestion  # noqa: E402
+    from src import data_preprocessing  # noqa: E402
+except ImportError:
+    import data_ingestion  # noqa: E402
+    import data_preprocessing  # noqa: E402
 
 
 class TestDataIngestion(unittest.TestCase):
@@ -134,7 +148,6 @@ class TestDataIngestion(unittest.TestCase):
         try:
             os.chdir(self.tmp_dir)
             # main() looks for "params.yaml" in the current working dir
-            # (self.params_path already IS tmp_dir/params.yaml, so no copy needed)
             data_ingestion.main()
 
             raw_dir = self.params["data_ingestion"]["raw_dir"]
@@ -187,12 +200,9 @@ class TestDataPreprocessing(unittest.TestCase):
         df = pd.DataFrame({"a": [1.0, 2.0, np.nan, 4.0]})
         cleaned = data_preprocessing.clean_data(df)
         self.assertFalse(cleaned["a"].isnull().any())
-        # median of [1,2,4] = 2.0
         self.assertEqual(cleaned["a"].iloc[2], 2.0)
 
     def test_clean_data_fills_categorical_na_with_mode(self):
-        # Use an extra distinguishing column so the "yes" rows aren't
-        # treated as duplicate rows and dropped before the fillna check.
         df = pd.DataFrame(
             {
                 "id": [1, 2, 3, 4],
@@ -201,7 +211,7 @@ class TestDataPreprocessing(unittest.TestCase):
         )
         cleaned = data_preprocessing.clean_data(df)
         self.assertFalse(cleaned["cat"].isnull().any())
-        self.assertEqual(cleaned["cat"].iloc[-1], "yes")  # mode is "yes"
+        self.assertEqual(cleaned["cat"].iloc[-1], "yes")
 
     # ----------------------- binary_encode ----------------------- #
     def test_binary_encode_maps_yes_no_to_1_0(self):
@@ -212,7 +222,6 @@ class TestDataPreprocessing(unittest.TestCase):
 
     def test_binary_encode_missing_column_logs_warning_not_raise(self):
         df = pd.DataFrame({"other_col": [1, 2, 3]})
-        # Should not raise even though 'mainroad' isn't present
         encoded = data_preprocessing.binary_encode(df, ["mainroad"])
         self.assertNotIn("mainroad", encoded.columns)
 

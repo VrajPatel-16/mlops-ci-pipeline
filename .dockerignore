@@ -1,0 +1,30 @@
+# Version control / tooling
+.git
+.gitignore
+.dvc
+.dvcignore
+.pytest_cache
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Training pipeline inputs/intermediates not needed for serving.
+# (data/features/scaler.pkl IS needed and is copied explicitly in the
+# Dockerfile, so it's fine that the rest of data/ is ignored here.)
+dataset/
+data/raw/
+data/processed/
+logs/
+metrics/
+exp.csv
+dvc.yaml
+dvc.lock
+params.yaml
+
+# Misc local/dev files
+commands*.txt
+test_pipeline.py
+*.log
+.env
+.venv
+venv/
